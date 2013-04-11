@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!--
+    Donation Address: 1MnKnd2t7Tfpy1Cs8bm5DraC9HzrHmHoso
+
+    Notice of Copyrights and Licenses:
+    ***********************************
+    The bitescrow.org project, software and embedded resources are copyright bitescrow.org. 
+
+    The individual copyrights are included throughout the document along with their licenses.
+    Included JavaScript libraries are separated with HTML script tags.
+
+    Summary of JavaScript functions with a redistributable license:
+    
+    JavaScript            License
+    ********************  ***************
+    Array.prototype.map   Public Domain
+    window.Crypto         BSD License
+    window.Crypto.Scrypt  MIT License
+    window.SecureRandom   BSD License
+    window.EllipticCurve  BSD License
+    window.BigInteger     BSD License
+    window.Bitcoin        MIT License
+    window.Bitcoin.Escrow MIT License
+
+    Framework             License
+    *******************   **************
+    Boostrap              Apache License
+
+    The bitescrow.org software is available under The MIT License (MIT)
+    Copyright (c) 2013 bitescrow.org
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
+    associated documentation files (the "Software"), to deal in the Software without restriction, including 
+    without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or 
+    sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject 
+    to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial 
+    portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT 
+    LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+    GitHub Repository: https://github.com/mannkind/bitescrow.org
+    -->
+
+    <title>Bitcoin Escrow</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet"></link>
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet"></link>
+    <link href="css/bitescrow.css" rel="stylesheet"></link>
+
+    <script src="js/array.map.js" type="text/javascript"></script>
+    <script src="js/crypto.js" type="text/javascript"></script>
+    <script src="js/secure.random.js" type="text/javascript"></script>
+    <script src="js/elliptic.curve.js" type="text/javascript"></script>
+    <script src="js/bigint.js" type="text/javascript"></script>
+    <script src="js/bitcoin.base58.js" type="text/javascript"></script>
+    <script src="js/bitcoin.address.js" type="text/javascript"></script>
+    <script src="js/bitcoin.ecsa.js" type="text/javascript"></script>
+    <script src="js/bitcoin.escrow.js" type="text/javascript"></script>
+    <script src="js/jquery.min.js" type="text/javascript"></script> 
+    <script src="js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="js/bitescrow.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">&nbsp;</div>
+      <div class="row">
+        <div class="span12">
+          <h2>Bitcoin Escrow</h2>
+          <p>An implementation of the <a href="https://en.bitcoin.it/wiki/User:ius/Escrow_scheme_draft">Bitcoin Escrow</a> proposal.</p>
+          <p>If you're looking for Two-Factor Bitcoins (<a href="https://en.bitcoin.it/wiki/BIP_0038">BIP38</a>), checkout <a href="http://www.bit2factor.org">bit2factor.org</a>.</p>
+
+          <div class="accordion" id="accordion2">
+
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                  <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+                    Escrow Agent
+                  </a>
+              </div>
+              <div id="collapseOne" class="accordion-body collapse in">
+                <div class="accordion-inner">
+                  <form class="form-horizontal">
+                    <div class="form-actions">
+                      <button id="generate-codepair" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate Escrow Invitations</button>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="gen-einva">Escrow Invitation A</label>
+                      <div class="controls">
+                        <input id="gen-einva" placeholder=" ... not yet generated ... " class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="gen-einvb">Escrow Invitation B</label>
+                      <div class="controls">
+                        <input id="gen-einvb" placeholder=" ... not yet generated ... " class="span8" />
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                  <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+                    Payee (Generate Payment Invitation)
+                  </a>
+              </div>
+              <div id="collapseTwo" class="accordion-body collapse">
+                <div class="accordion-inner">
+                  <form class="form-horizontal">
+                    <div class="control-group">s
+                      <label class="control-label" for="payment-code1">Escrow Invitation</label>
+                      <div class="controls">
+                        <input id="payment-code1" placeholder=" Enter an Escrow Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button id="generate-payment" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate Payment Invitation</button>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="payment-address">Address</label>
+                      <div class="controls">
+                        <input id="payment-address" placeholder=" ... not yet generated ... " class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="payment-einvp">Payment Invitiation</label>
+                      <div class="controls">
+                        <input id="payment-einvp" placeholder=" ... not yet generated ... " class="span8" />
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                  <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseThree">
+                    Payer (Verify Escrow &amp; Payment Invitations)
+                  </a>
+              </div>
+              <div id="collapseThree" class="accordion-body collapse">
+                <div class="accordion-inner">
+                  <form class="form-horizontal">
+                    <div class="control-group">
+                      <label class="control-label" for="verify-code1">Escrow Invitation</label>
+                      <div class="controls">
+                        <input id="verify-code1" placeholder=" Enter an Escrow Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="verify-code2">Payment Invitation</label>
+                      <div class="controls">
+                        <input id="verify-code2" placeholder=" Enter an Payment Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button id="verify" class="btn btn-primary" data-loading-text=" ... Verifying ... ">Verify Address &amp; Invitations</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                  <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseFour">
+                    Collect Bitcoins
+                  </a>
+              </div>
+              <div id="collapseFour" class="accordion-body collapse">
+                <div class="accordion-inner">
+                  <form class="form-horizontal">
+                    <div class="control-group">
+                      <label class="control-label" for="redeem-code1">Escrow Invitation</label>
+                      <div class="controls">
+                        <input id="redeem-code1" placeholder=" Enter an Escrow Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="redeem-code2">Escrow Invitation</label>
+                      <div class="controls">
+                        <input id="redeem-code2" placeholder=" Enter an Escrow Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="redeem-code3">Payment Invitation</label>
+                      <div class="controls">
+                        <input id="redeem-code3" placeholder=" Enter an Payment Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button id="redeem" class="btn btn-primary" data-loading-text=" ... Redeeming ... ">Generate Private Key (WIF)</button>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="redeem-address">Address</label>
+                      <div class="controls">
+                        <input id="redeem-address" placeholder=" ... not yet generated ... " class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="redeem-wif">Private Key (WIF)</label>
+                      <div class="controls">
+                        <input id="redeem-wif" placeholder=" ... not yet generated ... " class="span8" />
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <hr />
+          <p><small>
+            &copy;2013 BitEscrow<span class="pull-right">
+            <a href="https://github.com/mannkind/bitescrow.org">View Source Code</a></span></small>
+          </p>
+        </div>
+      </div>
+
+    </div>
+    <div id="verify-modal" class="modal hide fade">
+      <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h3>Verification Result</h3>
+        </div>
+      <div class="modal-body">
+          <p id="verify-verification"> ... not yet verified ... </p>
+        </div>
+      <div class="modal-footer">
+          <a href="#" class="btn" data-dismiss="modal">Close</a>
+        </div>
+    </div>
+  </body>
+</html>
