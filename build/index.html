@@ -217,6 +217,11 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
               </div>
               <div id="collapseOne" class="accordion-body collapse in">
                 <div class="accordion-inner">
+                  <div class="infostructions">
+                    <p>Starting an escrow transaction is easy; click the "Generate Escrow Invitations"!</p>
+                    <p>Once the two codes are generated, give one to the Payee and one to the Payer.</p>
+                    <p><strong>Do not</strong> give one party both codes until the transaction unless you need to force the coins to be released.</p>
+                  </div>
                   <form class="form-horizontal">
                     <div class="form-actions">
                       <button id="generate-codepair" class="btn btn-primary" data-loading-text=" ... Generating ... ">Generate Escrow Invitations</button>
@@ -246,6 +251,11 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
               </div>
               <div id="collapseTwo" class="accordion-body collapse">
                 <div class="accordion-inner">
+                  <div class="infostructions">
+                    <p>Enter your escrow invitiation code below.</p>
+                    <p>Send the resulting address and payment invitiation code to the Payer.</p>
+                    <p><strong>Do not</strong> send the Payer your escrow invitiation code until the transaction is complete and the coins are ready to be released.</p>
+                  </div>
                   <form class="form-horizontal">
                     <div class="control-group">
                       <label class="control-label" for="payment-code1">Escrow Invitation</label>
@@ -281,6 +291,9 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
               </div>
               <div id="collapseThree" class="accordion-body collapse">
                 <div class="accordion-inner">
+                  <p>Enter your escrow invitiation and payment invitation codes below.</p>
+                  <p>If the address and payment invitiation code you were given matches your escrow invitiation code, you can send the coins to the address.</p>
+                  <p><strong>Do not</strong> send the coins if the address does not belong to your escrow transaction!</p>
                   <form class="form-horizontal">
                     <div class="control-group">
                       <label class="control-label" for="verify-code1">Escrow Invitation</label>
@@ -310,6 +323,8 @@ $(function(){$("body").click(SecureRandom.seedTime).keypress(SecureRandom.seedTi
               </div>
               <div id="collapseFour" class="accordion-body collapse">
                 <div class="accordion-inner">
+                  <p>Enter both escrow invitiation codes and the payment invitation code below to receive the private key in the Wallet Import Format.
+                  </p>
                   <form class="form-horizontal">
                     <div class="control-group">
                       <label class="control-label" for="redeem-code1">Escrow Invitation</label>
