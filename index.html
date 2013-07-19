@@ -149,6 +149,49 @@
                         <input id="payment-einvp" placeholder=" ... not yet generated ... " class="span8" />
                       </div>
                     </div>
+                    <div class="alert alert-info"><strong>Optional:</strong> send the Address &amp; Payment Confirmation code to your escrow agent for verification.</div>
+                    <div class="control-group">
+                      <label class="control-label" for="payment-cfrmp">Payment Confirmation</label>
+                      <div class="controls">
+                        <input id="payment-cfrmp" placeholder=" ... not yet generated ... " class="span8" />
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                  <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseFive">
+                    Escrow (Verify Payment Confirmation) <small>&mdash;optional&mdash;</small>
+                  </a>
+              </div>
+              <div id="collapseFive" class="accordion-body collapse">
+                <div class="accordion-inner">
+                  <p>Enter your escrow invitiations and the payment confirmation code below.</p>
+                  <form class="form-horizontal">
+                    <div class="control-group">
+                      <label class="control-label" for="verify-ccode1">Escrow Invitation A</label>
+                      <div class="controls">
+                        <input id="verify-ccode1" placeholder=" Enter an Escrow Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="verify-ccode2">Escrow Invitation B</label>
+                      <div class="controls">
+                        <input id="verify-ccode2" placeholder=" Enter an Escrow Invitation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="verify-ccode3">Payment Confirmation</label>
+                      <div class="controls">
+                        <input id="verify-ccode3" placeholder=" Enter a Payment Confirmation Code" class="span8" />
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button id="verifyc" class="btn btn-primary" data-loading-text=" ... Verifying ... ">Verify Address &amp; Confirmation</button>
+                    </div>
                   </form>
                 </div>
               </div>
@@ -234,6 +277,7 @@
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -266,5 +310,18 @@
           <a href="#" class="btn" data-dismiss="modal">Close</a>
         </div>
     </div>
+    <div id="verifyc-modal" class="modal hide fade">
+      <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h3>Verification Result</h3>
+        </div>
+      <div class="modal-body">
+          <p id="verifyc-verification"> ... not yet verified ... </p>
+        </div>
+      <div class="modal-footer">
+          <a href="#" class="btn" data-dismiss="modal">Close</a>
+        </div>
+    </div>
+
   </body>
 </html>

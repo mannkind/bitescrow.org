@@ -49,13 +49,13 @@ Bitcoin.Escrow = {
 			return null;
 		}
 
-		thecodeBytes = Bitcoin.Base58.decode(thecode);
+		var thecodeBytes = Bitcoin.Base58.decode(thecode);
 		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
 
 		if (thecodeBytes.length != 74) { return null; }
 
-		priv = thecodeBytes.slice(9, 32+9);
-		pub = thecodeBytes.slice(41, 33+41);
+		var priv = thecodeBytes.slice(9, 32+9);
+		var pub = thecodeBytes.slice(41, 33+41);
 
 		var head = BigInteger.fromByteArrayUnsigned(thecodeBytes.slice(0, 8));
 		var identifier30i = new BigInteger('0');
@@ -79,6 +79,7 @@ Bitcoin.Escrow = {
         var Kz = new Bitcoin.ECKey(z);
 
 		var curve = EllipticCurve.getSECCurveByName("secp256k1");
+		var Gz = curve.getCurve().decodePointHex(Kz.getPubKeyHex())
 		var Gxyz = curve.getCurve().decodePointHex(Crypto.util.bytesToHex(pub).toString().toUpperCase()).multiply(privi).multiply(zi)
 		var hash160 = Bitcoin.Util.sha256ripe160(Gxyz.getEncoded());
 		var address = new Bitcoin.Address(hash160).toString();
@@ -94,9 +95,23 @@ Bitcoin.Escrow = {
 
 		invitationP = invitationP.concat(Bitcoin.Util.dsha256(invitationP).slice(0,4));
 
+		var confirmationP = this.cfrmp.add(identifier30i).toByteArrayUnsigned().concat([0]).concat(Gz.getEncoded(1)).concat(hash160);
+	    for (var i = confirmationP.length; i < 74; i++) {
+	    	confirmationP.push(0);
+	    }
+
+		if (thecode.substr(0, 5) == 'einvb') { 
+			confirmationP[62] = 0x2;
+		}
+
+		confirmationP = confirmationP.concat(Bitcoin.Util.dsha256(confirmationP).slice(0,4));
+
+
+
 		return {
 			address: address,
-			invitationP: Bitcoin.Base58.encode(invitationP)
+			invitationP: Bitcoin.Base58.encode(invitationP),
+			confirmationP: Bitcoin.Base58.encode(confirmationP)
 		}
 
 	},
@@ -109,15 +124,15 @@ Bitcoin.Escrow = {
         if (code1.substr(0, 5) == "einvp") paymentInvitationCode = code1;
         if (code2.substr(0, 5) == "einvp") paymentInvitationCode = code2;
 
-		thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCode);
-		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
+		var thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCode);
+		var thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
 
 		if (thecodeBytes.length != 74) { 
 			return { result: false, address: '', message: 'Invalid Escrow Invitation' };
 		}
 
-		priv = thecodeBytes.slice(9, 32+9);
-		pub = thecodeBytes.slice(41, 33+41);
+		var priv = thecodeBytes.slice(9, 32+9);
+		var pub = thecodeBytes.slice(41, 33+41);
 
 		thecodeBytes = Bitcoin.Base58.decode(paymentInvitationCode);
 		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
@@ -162,6 +177,77 @@ Bitcoin.Escrow = {
 
 		return { result: true, address: address };
 	},
+
+	VerifyConfirmationCode: function(code1, code2, code3) {
+        var escrowInvitationCodeA = null, escrowInvitationCodeB = null, paymentConfirmationCode = null;
+
+        if (code1.substr(0, 5) == "einva") escrowInvitationCodeA = code1;
+        if (code2.substr(0, 5) == "einva") escrowInvitationCodeA = code2;
+        if (code3.substr(0, 5) == "einva") escrowInvitationCodeA = code3;
+        if (code1.substr(0, 5) == "einvb") escrowInvitationCodeB = code1;
+        if (code2.substr(0, 5) == "einvb") escrowInvitationCodeB = code2;
+        if (code3.substr(0, 5) == "einvb") escrowInvitationCodeB = code3;
+        if (code1.substr(0, 5) == "cfrmp") paymentConfirmationCode = code1;
+        if (code2.substr(0, 5) == "cfrmp") paymentConfirmationCode = code2;
+        if (code3.substr(0, 5) == "cfrmp") paymentConfirmationCode = code3;
+
+		thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCodeA);
+		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
+
+		if (thecodeBytes.length != 74) { 
+			return { result: false, address: '', message: 'Invalid Escrow Invitation' };
+		}
+
+		var privA = thecodeBytes.slice(9, 32+9);
+    var privAi = BigInteger.fromByteArrayUnsigned(privA);
+
+		thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCodeB);
+		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
+
+		if (thecodeBytes.length != 74) { 
+			return { result: false, address: '', message: 'Invalid Escrow Invitation' };
+		}
+
+		var privB = thecodeBytes.slice(9, 32+9);
+    var privBi = BigInteger.fromByteArrayUnsigned(privB);
+
+		thecodeBytes = Bitcoin.Base58.decode(paymentConfirmationCode);
+		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
+
+		if (thecodeBytes.length != 74) { 
+			return { result: false, address: '', message: 'Invalid Escrow Invitiation' };
+		}
+
+		var Gz = thecodeBytes.slice(9, 33+9)
+		var head = BigInteger.fromByteArrayUnsigned(thecodeBytes.slice(0, 8));
+
+		var identifier30i = new BigInteger('0');
+
+		if (head.compareTo(this.cfrmp) < 0) { 
+			return { result: false, address: '', message: 'Invalid Payment Confirmation' };
+		} 
+		
+		identifier30i = head.subtract(this.cfrmp); 
+
+		var networkByte = thecodeBytes[8];
+		var compressedFlag = (thecodeBytes[8+1+1+32+20] & 0x1) == 1;
+
+		var curve = EllipticCurve.getSECCurveByName("secp256k1");
+		var Gxyz = curve.getCurve().decodePointHex(Crypto.util.bytesToHex(Gz).toString().toUpperCase()).multiply(privAi).multiply(privBi)
+
+		var hash160 = Bitcoin.Util.sha256ripe160(Gxyz.getEncoded());
+		var address = new Bitcoin.Address(hash160).toString();
+
+		// Does the hash160 match?!
+		for (var i = 0; i < 20; i++) {
+			if (hash160[i] != thecodeBytes[8+1+1+32+i]) { 
+				return { result: false, address: '', message: 'Warning: The Hash160 of the Bitcoin Address does not match!' };
+			}
+		}
+
+		return { result: true, address: address };
+	},
+
 
 	Redeem: function(code1, code2, code3) {
 	    var codea = null, codeb = null, codep = null;

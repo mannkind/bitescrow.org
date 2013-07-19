@@ -43,6 +43,7 @@ $(function() {
 		if (payment != null) {
 			$('#payment-address').val(payment.address);
 			$('#payment-einvp').val(payment.invitationP);
+			$('#payment-cfrmp').val(payment.confirmationP);
 		}
 		
 		endProcess($this, $target);
@@ -82,6 +83,49 @@ $(function() {
        	modal.modal('show');
 		endProcess($this, $target);
 	});
+
+	$('#verifyc').click(function(e) {
+		e.preventDefault();
+
+		$this = $(this);
+		$target = $(e.target);
+		startProcess($this, $target);
+
+		var modal = $('#verifyc-modal');
+		var verification = $('#verifyc-verification');
+
+		var code1 = $('#verify-ccode1');
+		if (code1.val().length != 106 || (code1.val().substr(0, 5) != 'einva' && code1.val().substr(0, 5) != 'einvb')) {
+			code1.popover({ content: 'The escrow invitation code is invalid' }).popover('show');
+			endProcess($this, $target);
+			return;
+		}
+
+		var code2 = $('#verify-ccode2');
+		if (code2.val().length != 106 || (code2.val().substr(0, 5) != 'einva' && code2.val().substr(0, 5) != 'einvb')) {
+			code2.popover({ content: 'The escrow invitation code is invalid' }).popover('show');
+			endProcess($this, $target);
+			return;
+		}
+
+		var code3 = $('#verify-ccode3');
+		if (code3.val().length != 106 || code3.val().substr(0, 5) != 'cfrmp') {
+			code3.popover({ content: 'The payment confirmation code is invalid' }).popover('show');
+			endProcess($this, $target);
+			return;
+		}
+
+		var verify = Bitcoin.Escrow.VerifyConfirmationCode(code1.val(), code2.val(), code3.val());		
+		if (verify.result) {
+			verification.text('The bitcoin address ' + verify.address + ' is associated with the transaction');
+		} else {
+			verification.text(verify.message);
+		}
+
+       	modal.modal('show');
+		endProcess($this, $target);
+	});
+
 
 	$('#redeem').click(function(e) {
 		e.preventDefault();
@@ -201,6 +245,15 @@ $(function() {
 			} else {
 				console.log('Testing passed GeneratedVerifyPaymentCode #' + i);
 			}
+      
+			// Verify the payment confirmation code
+			var verify = Bitcoin.Escrow.VerifyConfirmationCode(escrow.invitationA, escrow.invitationB, payment.confirmationP);
+			if (!verify.result) {
+				console.log('Testing failed GeneratedVerifyConfirmationCode #' + i);
+			} else {
+				console.log('Testing passed GeneratedVerifyConfirmationCode #' + i);
+			}
+
 
 			// Redeem the bitcoins
 			var bitcoin = Bitcoin.Escrow.Redeem(escrow.invitationA, escrow.invitationB, payment.invitationP);
