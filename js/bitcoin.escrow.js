@@ -125,7 +125,7 @@ Bitcoin.Escrow = {
         if (code2.substr(0, 5) == "einvp") paymentInvitationCode = code2;
 
 		var thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCode);
-		var thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
+		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
 
 		if (thecodeBytes.length != 74) { 
 			return { result: false, address: '', message: 'Invalid Escrow Invitation' };
@@ -191,7 +191,7 @@ Bitcoin.Escrow = {
         if (code2.substr(0, 5) == "cfrmp") paymentConfirmationCode = code2;
         if (code3.substr(0, 5) == "cfrmp") paymentConfirmationCode = code3;
 
-		thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCodeA);
+		var thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCodeA);
 		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
 
 		if (thecodeBytes.length != 74) { 
