@@ -33,7 +33,7 @@ $(function() {
 		startProcess($this, $target);
 
 		var code1 = $('#payment-code1');
-		if (code1.val().substr(0, 5) != 'einva' && code1.val().substr(0, 5) != 'einvb') {
+		if (code1.val().length != 106 || (code1.val().substr(0, 5) != 'einva' && code1.val().substr(0, 5) != 'einvb')) {
 			code1.popover({ content: 'The escrow invitation code is invalid' }).popover('show');
 			endProcess($this, $target);
 			return;
@@ -59,14 +59,14 @@ $(function() {
 		var verification = $('#verify-verification');
 
 		var code1 = $('#verify-code1');
-		if (code1.val().substr(0, 5) != 'einva' && code1.val().substr(0, 5) != 'einvb') {
+		if (code1.val().length != 106 || (code1.val().substr(0, 5) != 'einva' && code1.val().substr(0, 5) != 'einvb')) {
 			code1.popover({ content: 'The escrow invitation code is invalid' }).popover('show');
 			endProcess($this, $target);
 			return;
 		}
 
 		var code2 = $('#verify-code2');
-		if (code2.val().substr(0, 5) != 'einvp') {
+		if (code2.val().length != 106 || code2.val().substr(0, 5) != 'einvp') {
 			code2.popover({ content: 'The payment invitation code is invalid' }).popover('show');
 			endProcess($this, $target);
 			return;
@@ -91,21 +91,21 @@ $(function() {
 		startProcess($this, $target);
 
 		var code1 = $('#redeem-code1');
-		if (code1.val().substr(0, 5) != 'einva' && code1.val().substr(0, 5) != 'einvb') {
+		if (code1.val().length != 106 || (code1.val().substr(0, 5) != 'einva' && code1.val().substr(0, 5) != 'einvb')) {
 			code1.popover({ content: 'The escrow invitation code is invalid' }).popover('show');
 			endProcess($this, $target);
 			return;
 		}
 
 		var code2 = $('#redeem-code2');
-		if (code2.val().substr(0, 5) != 'einva' && code2.val().substr(0, 5) != 'einvb') {
+		if (code2.val().length != 106 || (code2.val().substr(0, 5) != 'einva' && code2.val().substr(0, 5) != 'einvb')) {
 			code2.popover({ content: 'The escrow invitation code is invalid' }).popover('show');
 			endProcess($this, $target);
 			return;
 		}
 
 		var code3 = $('#redeem-code3');
-		if (code3.val().substr(0, 5) != 'einvp') {
+		if (code3.val().length != 106 || code3.val().substr(0, 5) != 'einvp') {
 			code3.popover({ content: 'The payment invitation code is invalid' }).popover('show');
 			endProcess($this, $target);
 			return;
