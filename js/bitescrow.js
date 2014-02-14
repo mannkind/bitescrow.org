@@ -163,12 +163,75 @@ $(function() {
 		endProcess($this, $target);
 	});
 
+	$('#run-tests').click(function(e) {
+		e.preventDefault();
+
+		$this = $(this);
+		$target = $(e.target);
+		startProcess($this, $target);
+
+		$('#run-tests-modal').modal({
+			backdrop: 'static',
+			keyboard: false
+		});
+
+		runTests(function() {
+			console.log("... and done!")
+			endProcess($this, $target);
+		}, function(completedTestsCount, failedTestsCount, totalTestsCount) {
+			var content = "";
+			if (completedTestsCount == totalTestsCount) {
+				content = "All Bitcoin Escrow tests passed; no *known* problems!";
+				if (failedTestsCount != 0) {
+					content = "One or more Bitcoin Escrow tests failed! There may be an issue with your browser, one of the javascript libraries, or the Bitcoin Escrow code itself.";
+				}
+			} else {
+				content = "...still running tests; " + completedTestsCount + "/" + totalTestsCount + " completed. ";
+				if (failedTestsCount != 0) {
+					content += "Although " + failedTestsCount + " failed :(";
+				}
+			}
+
+			$('#run-tests-modal p').text(content);
+		});
+	});
+
 	/**
 	 * Testing Code
 	 */
-	var hash;hash={};window.location.hash.replace(/[#&]+([^=&]+)=([^&]*)/g,function(g,h,i){return hash[h]=i});
-	if (hash['runtests'] == 'true') {
-		console.log('Running tests...');
+	var runTests = function(testCompleteCallback, progressCallback) {
+
+		function runSerialized(functions, onComplete) {
+			onComplete = onComplete || function() {};
+
+			if(functions.length === 0) onComplete();
+			else {
+		        // run the first function, and make it call this
+		        // function when finished with the rest of the list
+		        var f = functions.shift();
+		        f(function() { runSerialized(functions, onComplete); } );
+		    }
+		}
+
+		function forSerialized(initial, max, whatToDo, onComplete) {
+			onComplete = onComplete || function() {};
+
+			if(initial === max) { onComplete(); }
+			else {
+		        // same idea as runSerialized
+		        whatToDo(initial, function() { forSerialized(++initial, max, whatToDo, onComplete); });
+		    }
+		}
+
+		function foreachSerialized(collection, whatToDo, onComplete) {
+			var keys = [];
+			for(var name in collection) {
+				keys.push(name);
+			}
+			forSerialized(0, keys.length, function(i, callback) {
+				whatToDo(keys[i], callback);
+			}, onComplete);
+		}
 
 		var tests = 
 		[
@@ -191,41 +254,44 @@ $(function() {
 			],
 		];
 
+		var totalTestsCount = tests.length + tests.length + 5;
+		var failedTestsCount = 0;
+		var completedTestsCount = 0;
+
 		// Test known (Casascius Bitcoin Tool generated) invitations
-		var test = tests[0];
-		var verify = Bitcoin.Escrow.VerifyPaymentCode(test[1], test[2]);
-		if (!verify) {
-			console.log('Testing failed VerifyPaymentCode #1');
-		} else {
-			console.log('Testing passed VerifyPaymentCode #1');
-		}
-		
-		test = tests[1];
-		var verify = Bitcoin.Escrow.VerifyPaymentCode(test[0], test[2]);
-		if (!verify) {
-			console.log('Testing failed VerifyPaymentCode #2');
-		} else {
-			console.log('Testing passed VerifyPaymentCode #2');
+		var knownInvitationsTest = function(test, i, onComplete) {
+			var verify = Bitcoin.Escrow.VerifyPaymentCode(test[1], test[2]);
+			if (!verify) {
+				console.log('Testing failed VerifyPaymentCode #' + i);
+				failedTestsCount++;
+			} else {
+				console.log('Testing passed VerifyPaymentCode #' + i);
+			}
+
+			onComplete();
 		}
 
-		for (var i = 0; i < tests.length; i++) {
-			var test = tests[i];
-
+		// Test redemption
+		var redeemTest = function(test, i, onComplete) {
 			var bitcoin = Bitcoin.Escrow.Redeem(test[0], test[1], test[2]);
 			if (bitcoin.address != test[3] || bitcoin.wif != test[4]) {
 				console.log('Testing failed Redeem #' + i);	
+				failedTestsCount++;
 			} else {
 				console.log('Testing passed Redeem #' + i);	
 			}
+
+			onComplete();
 		}
 
-		// Generate some escrow pairs 
-		for (var i = 0; i < 5; i++) {
-
+		var generateEscrowPairsTest = function(i, onComplete) {
 			// Create new escrow invitations
 			var escrow = Bitcoin.Escrow.CreateEscrowPair();
 			if (escrow.invitationA.substr(0, 5) != 'einva' || escrow.invitationB.substr(0, 5) != 'einvb') {
-				console.log('Testing failed GeneratedCreateEscrowPair #' + i);		
+				console.log('Testing failed GeneratedCreateEscrowPair #' + i);
+				failedTestsCount++;		
+				onComplete();
+				return;
 			} else {
 				console.log('Testing passed GeneratedCreateEscrowPair #' + i);		
 			}
@@ -233,7 +299,10 @@ $(function() {
 			// Create a new payment invitiation
 			var payment = Bitcoin.Escrow.CreatePaymentCode(escrow.invitationA);
 			if (payment.invitationP.substr(0, 5) != 'einvp') {
-				console.log('Testing failed GeneratedCreatePaymentCode #' + i);		
+				console.log('Testing failed GeneratedCreatePaymentCode #' + i);
+				failedTestsCount++;
+				onComplete();
+				return;
 			} else {
 				console.log('Testing passed GeneratedCreatePaymentCode #' + i);		
 			}
@@ -242,6 +311,9 @@ $(function() {
 			var verify = Bitcoin.Escrow.VerifyPaymentCode(escrow.invitationB, payment.invitationP);
 			if (!verify.result) {
 				console.log('Testing failed GeneratedVerifyPaymentCode #' + i);
+				failedTestsCount++;
+				onComplete();
+				return;
 			} else {
 				console.log('Testing passed GeneratedVerifyPaymentCode #' + i);
 			}
@@ -250,20 +322,58 @@ $(function() {
 			var verify = Bitcoin.Escrow.VerifyConfirmationCode(escrow.invitationA, escrow.invitationB, payment.confirmationP);
 			if (!verify.result) {
 				console.log('Testing failed GeneratedVerifyConfirmationCode #' + i);
+				failedTestsCount++;
+				onComplete();
+				return;
 			} else {
 				console.log('Testing passed GeneratedVerifyConfirmationCode #' + i);
 			}
 
-
 			// Redeem the bitcoins
 			var bitcoin = Bitcoin.Escrow.Redeem(escrow.invitationA, escrow.invitationB, payment.invitationP);
 			if (bitcoin.address != payment.address || bitcoin.wif == '' || bitcoin.wif == null) {
-				console.log('Testing failed GeneratedRedeem #' + i);	
+				console.log('Testing failed GeneratedRedeem #' + i);
+				failedTestsCount++;
+				onComplete();
+				return;	
 			} else {
 				console.log('Testing passed GeneratedRedeem #' + i);	
 			}
+			
+			onComplete();
 		}
 
+		function waitThenCall(callback, increment) {
+			return function() { 
+				if (increment) { completedTestsCount++; }
+				progressCallback(completedTestsCount, failedTestsCount, totalTestsCount);
+				setTimeout(callback, 1000); 
+			}
+		}
+
+		runSerialized([
+			function(cb) {
+				forSerialized(0, tests.length, function(i, callback) {
+			      knownInvitationsTest(tests[i], i, waitThenCall(callback, true));
+			  }, waitThenCall(cb));
+			},
+			function(cb) {
+				forSerialized(0, tests.length, function(i, callback) {
+					redeemTest(tests[i], i, waitThenCall(callback, true));
+				}, waitThenCall(cb));
+			},
+			function(cb) {
+				forSerialized(0, 5, function(i, callback) {
+					generateEscrowPairsTest(i, waitThenCall(callback, true));
+				}, waitThenCall(cb));
+			}
+		], testCompleteCallback);
+	}
+
+	var hash;hash={};window.location.hash.replace(/[#&]+([^=&]+)=([^&]*)/g,function(g,h,i){return hash[h]=i});
+	if (hash['runtests'] == 'true') {
+		console.log('Running tests...');
+		runTests();
 		console.log('... done');
 	}
 });

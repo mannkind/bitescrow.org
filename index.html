@@ -293,6 +293,14 @@
       <div class="row">
         <div class="span12">
           <hr />
+          <p><button id="run-tests" class="btn btn-primary btn-small" data-loading-text=" ... Running Tests ... ">Run Bitcoin Escrow Test Suite</button></p>
+          <p class="muted">The test suite does take some time to complete so please be patient.</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <hr />
           <p><small>
             <span class="pull-left">
               <a href="https://blockchain.info/address/
@@ -329,6 +337,19 @@
       <div class="modal-footer">
           <a href="#" class="btn" data-dismiss="modal">Close</a>
         </div>
+    </div>
+
+    <div id="run-tests-modal" class="modal hide fade">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Bitcoin Escrow Test Results</h3>
+      </div>
+      <div class="modal-body">
+        <p> ... tests not yet completed ... </p>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Close</a>
+      </div>
     </div>
 
   </body>
