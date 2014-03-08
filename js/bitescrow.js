@@ -2,6 +2,10 @@ $(function() {
 	$('body').click(SecureRandom.seedTime).keypress(SecureRandom.seedTime);
   	$('form').submit(function(e) { e.preventDefault(); });
 
+	$.each(Bitcoin.CoinMapping._mapping, function(coin, obj) {
+		$('#cryptocurrency').append($('<option />').val(coin).text(Bitcoin.CoinMapping.Name(coin)));
+	});
+
 	var disableButtons = function(item) { item.parent().children('button').attr('disabled', 'disabled'); };
 	var enableButtons = function(item) { item.parent().children('button').attr('disabled', null); };
 	var enableSpinner = function(item) { item.button('loading'); };
@@ -181,9 +185,9 @@ $(function() {
 		}, function(completedTestsCount, failedTestsCount, totalTestsCount) {
 			var content = "";
 			if (completedTestsCount == totalTestsCount) {
-				content = "All Bitcoin Escrow tests passed; no *known* problems!";
+				content = "All Escrow tests passed; no *known* problems!";
 				if (failedTestsCount != 0) {
-					content = "One or more Bitcoin Escrow tests failed! There may be an issue with your browser, one of the javascript libraries, or the Bitcoin Escrow code itself.";
+					content = "One or more Escrow tests failed! There may be an issue with your browser, one of the javascript libraries, or the Bitcoin Escrow code itself.";
 				}
 			} else {
 				content = "...still running tests; " + completedTestsCount + "/" + totalTestsCount + " completed. ";
@@ -195,6 +199,19 @@ $(function() {
 			$('#run-tests-modal p').text(content);
 		});
 	});
+
+	$('#cryptocurrency').change(function(e) {
+		switchCryptocurrency($(this).val());
+	});
+
+	var switchCryptocurrency = function(coin) {
+		Bitcoin.CoinMapping.Change(coin);
+		
+		$('title').text(Bitcoin.CoinMapping.Name(coin) + ' Escrow');
+		$('.coinPlaceholder').text(Bitcoin.CoinMapping.Name(coin));
+
+		window.location.hash = "coin=" + coin;
+	};
 
 	/**
 	 * Testing Code
@@ -211,7 +228,7 @@ $(function() {
 		        var f = functions.shift();
 		        f(function() { runSerialized(functions, onComplete); } );
 		    }
-		}
+		};
 
 		function forSerialized(initial, max, whatToDo, onComplete) {
 			onComplete = onComplete || function() {};
@@ -221,7 +238,7 @@ $(function() {
 		        // same idea as runSerialized
 		        whatToDo(initial, function() { forSerialized(++initial, max, whatToDo, onComplete); });
 		    }
-		}
+		};
 
 		function foreachSerialized(collection, whatToDo, onComplete) {
 			var keys = [];
@@ -231,7 +248,7 @@ $(function() {
 			forSerialized(0, keys.length, function(i, callback) {
 				whatToDo(keys[i], callback);
 			}, onComplete);
-		}
+		};
 
 		var tests = 
 		[
@@ -269,7 +286,7 @@ $(function() {
 			}
 
 			onComplete();
-		}
+		};
 
 		// Test redemption
 		var redeemTest = function(test, i, onComplete) {
@@ -282,7 +299,7 @@ $(function() {
 			}
 
 			onComplete();
-		}
+		};
 
 		var generateEscrowPairsTest = function(i, onComplete) {
 			// Create new escrow invitations
@@ -349,7 +366,7 @@ $(function() {
 				progressCallback(completedTestsCount, failedTestsCount, totalTestsCount);
 				setTimeout(callback, 1000); 
 			}
-		}
+		};
 
 		runSerialized([
 			function(cb) {
@@ -368,12 +385,10 @@ $(function() {
 				}, waitThenCall(cb));
 			}
 		], testCompleteCallback);
-	}
+	};
 
 	var hash;hash={};window.location.hash.replace(/[#&]+([^=&]+)=([^&]*)/g,function(g,h,i){return hash[h]=i});
-	if (hash['runtests'] == 'true') {
-		console.log('Running tests...');
-		runTests();
-		console.log('... done');
-	}
+	var coin = typeof hash['coin'] === 'undefined' ? 'bitcoin' : hash['coin'];
+	switchCryptocurrency(coin)
+	$('#cryptocurrency option[value="' + coin + '"]').attr('selected', true);
 });

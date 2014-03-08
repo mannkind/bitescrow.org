@@ -84,7 +84,7 @@ Bitcoin.Escrow = {
 		var hash160 = Bitcoin.Util.sha256ripe160(Gxyz.getEncoded());
 		var address = new Bitcoin.Address(hash160).toString();
 
-		var invitationP = this.einvp.add(identifier30i).toByteArrayUnsigned().concat([0, 0]).concat(z).concat(hash160);
+		var invitationP = this.einvp.add(identifier30i).toByteArrayUnsigned().concat([Bitcoin.Address.networkVersion, 0]).concat(z).concat(hash160);
 	    for (var i = invitationP.length; i < 74; i++) {
 	    	invitationP.push(0);
 	    }
@@ -95,7 +95,7 @@ Bitcoin.Escrow = {
 
 		invitationP = invitationP.concat(Bitcoin.Util.dsha256(invitationP).slice(0,4));
 
-		var confirmationP = this.cfrmp.add(identifier30i).toByteArrayUnsigned().concat([0]).concat(Gz.getEncoded(1)).concat(hash160);
+		var confirmationP = this.cfrmp.add(identifier30i).toByteArrayUnsigned().concat([Bitcoin.Address.networkVersion]).concat(Gz.getEncoded(1)).concat(hash160);
 	    for (var i = confirmationP.length; i < 74; i++) {
 	    	confirmationP.push(0);
 	    }
@@ -199,7 +199,7 @@ Bitcoin.Escrow = {
 		}
 
 		var privA = thecodeBytes.slice(9, 32+9);
-    var privAi = BigInteger.fromByteArrayUnsigned(privA);
+    	var privAi = BigInteger.fromByteArrayUnsigned(privA);
 
 		thecodeBytes = Bitcoin.Base58.decode(escrowInvitationCodeB);
 		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
@@ -209,7 +209,7 @@ Bitcoin.Escrow = {
 		}
 
 		var privB = thecodeBytes.slice(9, 32+9);
-    var privBi = BigInteger.fromByteArrayUnsigned(privB);
+    	var privBi = BigInteger.fromByteArrayUnsigned(privB);
 
 		thecodeBytes = Bitcoin.Base58.decode(paymentConfirmationCode);
 		thecodeBytes = thecodeBytes.slice(0, thecodeBytes.length - 4);
@@ -300,11 +300,22 @@ Bitcoin.Escrow = {
 		var curve = EllipticCurve.getSECCurveByName("secp256k1");
 		xyz = xyz.mod(curve.getN());
 
-		var bitcoin = new Bitcoin.ECKey(xyz.toByteArrayUnsigned());
+		var origNetworkVersion = Bitcoin.Address.networkVersion;
+		
+		Bitcoin.Address.networkVersion = networkByte;
+		Bitcoin.ECKey.privateKeyPrefix = (networkByte + 128) % 256;
 
-		return {
+		var bitcoin = new Bitcoin.ECKey(xyz.toByteArrayUnsigned());
+		bitcoin.setCompressed(compressedFlag);
+
+		values = {
 			address: bitcoin.getBitcoinAddress(),
 			wif: bitcoin.getBitcoinWalletImportFormat()
 		}
+		
+		Bitcoin.Address.networkVersion = origNetworkVersion;
+		Bitcoin.ECKey.privateKeyPrefix = (origNetworkVersion + 128) % 256;
+
+		return values;
 	}
 }
